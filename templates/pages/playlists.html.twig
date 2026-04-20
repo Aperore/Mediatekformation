@@ -1,73 +1,134 @@
 {% extends "basefront.html.twig" %}
 {% block body %}
+
+    {# AJOUT : affichage des messages flash.
+       app.flashes() lit et vide la session en même temps — le message n'apparaît qu'une fois.
+       'success' = ajout/modification/suppression réussie.
+       'error'   = suppression bloquée car des formations sont rattachées. #}
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success">{{ message }}</div>
+    {% endfor %}
+    {% for message in app.flashes('error') %}
+        <div class="alert alert-danger">{{ message }}</div>
+    {% endfor %}
+
+    {# AJOUT : bouton d'ajout au-dessus du tableau.
+       Placé hors du <thead> pour ne pas perturber l'alignement des colonnes. #}
+    <div class="mb-3">
+        <a href="{{ path('playlists.ajouter') }}" class="btn btn-primary btn-sm">
+            + Ajouter une playlist
+        </a>
+    </div>
+
     <table class="table table-striped">
         <thead>
             <tr>
+                {# CONSERVÉ : colonne "playlist" avec tri ASC/DESC et filtre texte #}
                 <th class="text-left align-top" scope="col">
                     playlist<br />
                     <a href="{{ path('playlists.sort', {champ:'name', ordre:'ASC'}) }}" class="btn btn-info btn-sm active" role="button" aria-pressed="true"><</a>
                     <a href="{{ path('playlists.sort', {champ:'name', ordre:'DESC'}) }}" class="btn btn-info btn-sm active" role="button" aria-pressed="true">></a>
                     <form class="form-inline mt-1" method="POST" action="{{ path('playlists.findallcontain', {champ:'name'}) }}">
                         <div class="form-group mr-1 mb-2">
-                            <input type="text" class="sm" name="recherche" 
+                            <input type="text" class="sm" name="recherche"
                                    value="{% if valeur|default and not table|default %}{{ valeur }}{% endif %}">
                             <input type="hidden" name="_token" value="{{ csrf_token('filtre_name') }}">
                             <button type="submit" class="btn btn-info mb-2 btn-sm">filtrer</button>
                         </div>
-                    </form>                    
+                    </form>
                 </th>
+
+                {# CONSERVÉ : colonne "catégories" avec filtre par liste déroulante #}
                 <th class="text-left align-top" scope="col">
                     catégories
                     <form class="form-inline mt-1" method="POST" action="{{ path('playlists.findallcontain', {champ:'id', table:'categories'}) }}">
                         <select class="form-select form-select-sm" name="recherche" id="recherche" onchange="this.form.submit()">
                             <option value=""></option>
                             {% for categorie in categories %}
-                                <option 
-                                    {% if valeur|default and valeur==categorie.id %} 
+                                <option
+                                    {% if valeur|default and valeur == categorie.id %}
                                         selected
-                                    {% endif %} 
+                                    {% endif %}
                                     value="{{ categorie.id }}">{{ categorie.name }}
                                 </option>
                             {% endfor %}
-                        </select>                    
-                    </form>            
+                        </select>
+                    </form>
                 </th>
-                <th class="text-center align-top" scope="col">
-                    &nbsp;
-                </th>
+
+                {# CONSERVÉ : colonne vide pour le bouton "Voir détail" #}
+                <th class="text-center align-top" scope="col">&nbsp;</th>
+
+                {# CONSERVÉ : colonne "NombreVideos" avec tri ASC/DESC #}
                 <th class="text-center align-top" scope="col">
                     NombreVideos
                     <a href="{{ path('playlists.sort', {champ:'NombreFormations', ordre:'ASC'}) }}" class="btn btn-info btn-sm active" role="button" aria-pressed="true"><</a>
                     <a href="{{ path('playlists.sort', {champ:'NombreFormations', ordre:'DESC'}) }}" class="btn btn-info btn-sm active" role="button" aria-pressed="true">></a>
                 </th>
+
+                {# AJOUT : colonne "actions" pour les boutons modifier et supprimer #}
+                <th class="text-center align-top" scope="col">actions</th>
             </tr>
         </thead>
+
         <tbody>
-            <!-- boucle sur les playlists -->
+            {# CONSERVÉ : vérification que la liste n'est pas vide avant la boucle #}
             {% if playlists|length > 0 %}
+                {# CONSERVÉ : boucle par index, identique à l'existant #}
                 {% for k in 0..playlists|length-1 %}
                     <tr class="align-middle">
+
+                        {# CONSERVÉ : nom de la playlist #}
                         <td>
-                            <h5 class="text-info">
-                                {{ playlists[k].name }}
-                            </h5>
-                        </td>                 
+                            <h5 class="text-info">{{ playlists[k].name }}</h5>
+                        </td>
+
+                        {# CONSERVÉ : catégories de la playlist #}
                         <td class="text-left">
                             {% set categories = playlists[k].categoriesplaylist %}
-                            {% if categories|length > 0  %}
+                            {% if categories|length > 0 %}
                                 {% for c in 0..categories|length-1 %}
-                                    &nbsp;{{ categories[c] }}                                  
+                                    &nbsp;{{ categories[c] }}
                                 {% endfor %}
                             {% endif %}
-                        </td>            					
-                        <td class="text-center">
-                            <a href="{{ path('playlists.showone', {id:playlists[k].id}) }}" class="btn btn-secondary">Voir détail</a>
                         </td>
+
+                        {# CONSERVÉ : bouton "Voir détail" #}
+                        <td class="text-center">
+                            <a href="{{ path('playlists.showone', {id: playlists[k].id}) }}" class="btn btn-secondary">Voir détail</a>
+                        </td>
+
+                        {# CONSERVÉ : nombre de formations #}
                         <td class="text-center">
                             {{ playlists[k].NombreFormations }}
                         </td>
+
+                        {# AJOUT : boutons modifier et supprimer alignés avec le <th> "actions" #}
+                        <td class="text-center">
+
+                            {# AJOUT : lien GET vers le formulaire prérempli #}
+                            <a href="{{ path('playlists.modifier', {id: playlists[k].id}) }}"
+                               class="btn btn-warning btn-sm">
+                                modifier
+                            </a>
+
+                            {# AJOUT : formulaire POST pour la suppression.
+                               POST + CSRF = double protection contre les suppressions non voulues.
+                               onsubmit demande une confirmation avant l'envoi. #}
+                            <form method="post"
+                                  action="{{ path('playlists.retirer', {id: playlists[k].id}) }}"
+                                  style="display: inline-block"
+                                  onsubmit="return confirm('Supprimer la playlist « {{ playlists[k].name }} » ?');">
+                                <input type="hidden" name="_token"
+                                       value="{{ csrf_token('retirer_playlist_' ~ playlists[k].id) }}">
+                                <button type="submit" class="btn btn-danger btn-sm">
+                                    supprimer
+                                </button>
+                            </form>
+
+                        </td>
                     </tr>
-                {% endfor %}	
+                {% endfor %}
             {% endif %}
         </tbody>
     </table>
