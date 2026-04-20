@@ -1,0 +1,68 @@
+{# empty Twig template #}
+{% extends "basefront.html.twig" %}
+{% block body %}
+<div class="container mt-4">
+
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success">{{ message }}</div>
+    {% endfor %}
+    {% for message in app.flashes('error') %}
+        <div class="alert alert-danger">{{ message }}</div>
+    {% endfor %}
+
+    {# Formulaire; Pas de page dédiée : un seul champ c'est rapide #}
+    <form method="post" action="{{ path('categories.ajouter') }}" class="form-inline mb-4">
+        <div class="input-group" style="max-width: 400px;">
+            <input type="text"
+                   name="name"
+                   class="form-control"
+                   placeholder="Nom de la nouvelle catégorie"
+                   maxlength="50"
+                   required>
+            <input type="hidden" name="_token" value="{{ csrf_token('ajouter_categorie') }}">
+            <button type="submit" class="btn btn-primary">Ajouter</button>
+        </div>
+    </form>
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th class="text-left" scope="col">catégorie</th>
+
+                <th class="text-center" scope="col">formations liées</th>
+
+                <th class="text-center" scope="col">actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for categorie in categories %}
+                <tr class="align-middle">
+
+                    <td>
+                        <h5 class="text-info">{{ categorie.name }}</h5>
+                    </td>
+
+                    <td class="text-center">
+                        {{ categorie.formations|length }}
+                    </td>
+
+                    <td class="text-center">
+                        <form method="post"
+                              action="{{ path('categories.retirer', {id: categorie.id}) }}"
+                              style="display: inline-block"
+                              onsubmit="return confirm('Supprimer la catégorie « {{ categorie.name }} » ?');">
+                            <input type="hidden" name="_token"
+                                   value="{{ csrf_token('retirer_categorie_' ~ categorie.id) }}">
+                            <button type="submit" class="btn btn-danger btn-sm">
+                                supprimer
+                            </button>
+                        </form>
+                    </td>
+
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</div>
+{% endblock %}

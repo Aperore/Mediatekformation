@@ -44,5 +44,16 @@ class CategorieRepository extends ServiceEntityRepository
                 ->getQuery()
                 ->getResult();
     }
-    
+    /**
+     * Retourne toutes les catégories triées alphabétiquement par nom.
+     * Utilisée par le contrôleur pour afficher la liste dans un ordre cohérent.
+     * @return Categorie[]
+     */
+    public function findAllOrderByName(): array
+    {
+        return $this->createQueryBuilder('c')
+            ->orderBy('c.name', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 }
