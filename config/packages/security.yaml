@@ -2,28 +2,55 @@ security:
     # https://symfony.com/doc/current/security.html#registering-the-user-hashing-passwords
     password_hashers:
         Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
-    # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
+
     providers:
-        users_in_memory: { memory: null }
+        # Remplacement de users_in_memory: { memory: null } par un provider
+        # avec un vrai utilisateur admin dont le mot de passe est haché.
+        # Un seul admin en mémoire : pas besoin de table User en BDD.
+        admin_in_memory:
+            memory:
+                users:
+                    admin:
+                        # Résultat de security:hash-password dans le panneau de commande
+                        password: '$2y$13$Jh2rY9hrGHgufvBmzX641uWX/dwARDD/8KnmneMX.5fDsDopDbKfm'
+                        roles: ['ROLE_ADMIN']
+
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
         main:
             lazy: true
-            provider: users_in_memory
+            # Provider pointe vers admin_in_memory au lieu de users_in_memory
+            provider: admin_in_memory
 
-            # activate different ways to authenticate
-            # https://symfony.com/doc/current/security.html#the-firewall
+            # Activation de l'authentification par formulaire.
+            # Symfony intercepte automatiquement le POST sur check_path
+            # et gère la vérification du mot de passe sans code PHP supplémentaire.
+            form_login:
+                login_path: admin.login
+                check_path: admin.login
+                default_target_path: /admin
+                # Protection CSRF du formulaire de connexion
+                enable_csrf: true
 
-            # https://symfony.com/doc/current/security/impersonating_user.html
-            # switch_user: true
+            # Activation de la déconnexion.
+            # Symfony intercepte la route admin.logout automatiquement —
+            # la méthode logout() du contrôleur n'est jamais exécutée.
+            logout:
+                path: admin.logout
+                target: /
 
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control:
-        # - { path: ^/admin, roles: ROLE_ADMIN }
-        # - { path: ^/profile, roles: ROLE_USER }
+        # /admin/login doit être accessible AVANT la règle générale /admin
+        # sinon Symfony boucle.
+        # Symfony applique la première règle qui correspond à l'URL.
+        - { path: ^/admin/login, roles: PUBLIC_ACCESS }
+        # Toutes les URLs /admin/* nécessitent ROLE_ADMIN.
+        # Symfony redirige automatiquement vers login_path si non connecté.
+        - { path: ^/admin, roles: ROLE_ADMIN }
 
 when@test:
     security:
@@ -34,6 +61,6 @@ when@test:
             # reduces the work factor to the lowest possible values.
             Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface:
                 algorithm: auto
-                cost: 4 # Lowest possible value for bcrypt
-                time_cost: 3 # Lowest possible value for argon
-                memory_cost: 10 # Lowest possible value for argon
+                cost: 4
+                time_cost: 3
+                memory_cost: 10

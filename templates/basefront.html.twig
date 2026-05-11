@@ -20,7 +20,17 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ path('playlists') }}">Playlists</a>
-                    </li>                    
+                    </li>
+                       {# Lien de déconnexion visible uniquement si l'admin
+                       est connecté et navigue sur le front office.
+                       is_granted() retourne false si non authentifié → le lien est masqué. #}
+                    {% if is_granted('ROLE_ADMIN') %}
+                    <li class="nav-item">
+                        <a class="nav-link text-danger" href="{{ path('admin.logout') }}">
+                            Se déconnecter
+                        </a>
+                    </li>
+                    {% endif %}                    
                 </ul>
             </div>
         </nav>        

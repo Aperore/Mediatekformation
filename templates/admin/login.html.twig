@@ -1,0 +1,57 @@
+{% extends "base.html.twig" %}
+{% block body %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-4">
+
+            <h2 class="text-info mb-4">Connexion administration</h2>
+
+            {# Affichage de l'erreur Symfony si les identifiants sont incorrects.
+               error.messageKey retourne une clé de traduction Symfony (ex: "Invalid credentials.").
+               error.messageData contient les paramètres de traduction éventuels. #}
+            {% if error %}
+                <div class="alert alert-danger">
+                    {{ error.messageKey|trans(error.messageData, 'security') }}
+                </div>
+            {% endif %}
+
+            {# Le formulaire pointe vers la même route (admin.login).
+               Symfony intercepte le POST avant le contrôleur grâce à check_path: admin.login
+               défini dans security.yaml. #}
+            <form method="post" action="{{ path('admin.login') }}">
+
+                <div class="mb-3">
+                    <label for="username" class="form-label">Identifiant</label>
+                    {# _username : nom de champ réservé par Symfony pour form_login.
+                       value pré-rempli avec le dernier identifiant saisi. #}
+                    <input type="text"
+                           id="username"
+                           name="_username"
+                           class="form-control"
+                           value="{{ last_username }}"
+                           required
+                           autofocus>
+                </div>
+
+                <div class="mb-3">
+                    <label for="password" class="form-label">Mot de passe</label>
+                    {# _password : nom de champ réservé par Symfony pour form_login. #}
+                    <input type="password"
+                           id="password"
+                           name="_password"
+                           class="form-control"
+                           required>
+                </div>
+
+                {# Token CSRF : requis car enable_csrf: true est activé dans security.yaml.
+                   Symfony valide ce token automatiquement avant de vérifier les identifiants. #}
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+                <button type="submit" class="btn btn-primary w-100">Se connecter</button>
+
+            </form>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
