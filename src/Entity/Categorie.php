@@ -29,16 +29,32 @@ class Categorie
         $this->formations = new ArrayCollection();
     }
 
+     /**
+     * Retourne l'identifiant de la catégorie.
+     *
+     * @return int|null
+     */
     public function getId(): ?int
     {
         return $this->id;
     }
 
+    /**
+     * Retourne le nom de la catégorie.
+     *
+     * @return string|null
+     */
     public function getName(): ?string
     {
         return $this->name;
     }
 
+    /**
+     * Définit le nom de la catégorie.
+     *
+     * @param string|null $name Nom de la catégorie
+     * @return static
+     */
     public function setName(?string $name): static
     {
         $this->name = $name;
@@ -47,6 +63,8 @@ class Categorie
     }
 
     /**
+     * Retourne la liste des catégories 
+     * 
      * @return Collection<int, Formation>
      */
     public function getFormations(): Collection

@@ -1,9 +1,4 @@
 <?php
-/* 
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHP.php to edit this template
- */
-
 namespace App\Controller;
 
 use App\Entity\Categorie;
@@ -13,17 +8,41 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
+/**
+ * Contrôleur de gestion des catégories (back office).
+ * Gère l'affichage, l'ajout et la suppression des catégories.
+ *
+ * @author emds
+ */
 class CategoriesController extends AbstractController
 {
+    /**
+     * Chemin du template de la liste des catégories.
+     */
     private const PAGECATEGORIES = 'pages/categories.html.twig';
 
+    /**
+     * Repository des catégories.
+     *
+     * @var CategorieRepository
+     */
     private CategorieRepository $categorieRepository;
 
+    /**
+     * Injection du repository via le constructeur.
+     *
+     * @param CategorieRepository $categorieRepository Repository des catégories
+     */
     public function __construct(CategorieRepository $categorieRepository)
     {
         $this->categorieRepository = $categorieRepository;
     }
 
+    /**
+     * Affiche la liste complète des catégories triées par nom.
+     *
+     * @return Response
+     */
     #[Route('/categories', name: 'categories')]
     public function index(): Response
     {
@@ -33,6 +52,13 @@ class CategoriesController extends AbstractController
         ]);
     }
 
+    /**
+     * Traite l'ajout d'une nouvelle catégorie via le mini formulaire de la page de liste.
+     * Vérifie le token CSRF, que le nom n'est pas vide, et qu'il n'existe pas déjà en BDD.
+     *
+     * @param Request $request Requête HTTP contenant le nom de la catégorie
+     * @return Response
+     */
     #[Route('/categories/ajouter', name: 'categories.ajouter', methods: ['POST'])]
     public function ajouter(Request $request): Response
     {
@@ -63,6 +89,14 @@ class CategoriesController extends AbstractController
         return $this->redirectToRoute('categories');
     }
 
+    /**
+     * Supprime une catégorie après vérification du token CSRF.
+     * La suppression est bloquée si des formations sont rattachées à la catégorie.
+     *
+     * @param Categorie $categorie Catégorie à supprimer (injectée via ParamConverter)
+     * @param Request   $request   Requête HTTP
+     * @return Response
+     */
     #[Route('/categories/{id}', name: 'categories.retirer', methods: ['POST'])]
     public function retirer(Categorie $categorie, Request $request): Response
     {

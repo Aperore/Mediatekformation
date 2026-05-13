@@ -6,28 +6,37 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
+/**
+ * Contrôleur de gestion de l'authentification et de l'accès au back office.
+ *
+ * @author emds
+ */
 class AdminController extends AbstractController
 {
-    // Page d'accueil du back office.
-    // Protégée par access_control dans security.yaml : seul ROLE_ADMIN peut y accéder.
-    // Symfony redirige vers /admin/login si non authentifié.
+    /**
+     * Affiche la page d'accueil du back office.
+     * Protégée par access_control dans security.yaml : seul ROLE_ADMIN peut y accéder.
+     *
+     * @return Response
+     */
     #[Route('/admin', name: 'admin')]
     public function index(): Response
     {
         return $this->render('admin/index.html.twig');
     }
 
-    // Affiche le formulaire de connexion (GET) et reçoit sa soumission (POST).
-    // Le traitement POST est entièrement géré par Symfony via form_login dans security.yaml :
-    // Symfony intercepte le POST avant que cette méthode soit appelée.
-    // AuthenticationUtils fournit l'erreur éventuelle et le dernier login saisi.
+    /**
+     * Affiche le formulaire de connexion et fournit les données nécessaires au template.
+     * Le traitement POST est entièrement géré par Symfony via form_login dans security.yaml.
+     *
+     * @param AuthenticationUtils $authenticationUtils Utilitaire Symfony pour récupérer
+     *                                                 l'erreur et le dernier login saisi
+     * @return Response
+     */
     #[Route('/admin/login', name: 'admin.login')]
     public function login(AuthenticationUtils $authenticationUtils): Response
     {
-        // Récupère l'erreur de connexion si elle existe (mauvais mot de passe, etc.)
-        $error = $authenticationUtils->getLastAuthenticationError();
-
-        // Pré-remplit le champ login avec le dernier identifiant saisi
+        $error        = $authenticationUtils->getLastAuthenticationError();
         $lastUsername = $authenticationUtils->getLastUsername();
 
         return $this->render('admin/login.html.twig', [
@@ -36,7 +45,14 @@ class AdminController extends AbstractController
         ]);
     }
 
-    // Méthode jamais exécutée car interceptée mias necessaire pour la route.
+    /**
+     * Route de déconnexion interceptée par Symfony avant l'exécution de cette méthode.
+     * La méthode ne sera jamais appelée : Symfony invalide la session et redirige
+     * vers la cible définie dans security.yaml (logout.target).
+     *
+     * @return Response
+     * @throws \LogicException Toujours levée si la méthode est appelée par erreur
+     */
     #[Route('/admin/logout', name: 'admin.logout', methods: ['GET'])]
     public function logout(): Response
     {

@@ -11,21 +11,38 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
- * Controleur des formations
+ * Contrôleur de gestion des formations (front et back office).
+ * Gère l'affichage, l'ajout, la modification et la suppression des formations.
  *
  * @author emds
  */
 class FormationsController extends AbstractController
 {
-    private const PAGEFORMATIONS = 'pages/formations.html.twig';
     /**
+     * Chemin du template de la liste des formations.
+     */
+    private const PAGEFORMATIONS = 'pages/formations.html.twig';
+
+    /**
+     * Repository des formations.
      *
      * @var FormationRepository
      */
-
     private FormationRepository $formationRepository;
+
+    /**
+     * Repository des catégories.
+     *
+     * @var CategorieRepository
+     */
     private CategorieRepository $categorieRepository;
 
+    /**
+     * Injection des repositories via le constructeur.
+     *
+     * @param FormationRepository $formationRepository Repository des formations
+     * @param CategorieRepository $categorieRepository Repository des catégories
+     */
     public function __construct(
         FormationRepository $formationRepository,
         CategorieRepository $categorieRepository
@@ -34,6 +51,11 @@ class FormationsController extends AbstractController
         $this->categorieRepository = $categorieRepository;
     }
 
+    /**
+     * Affiche la liste complète des formations.
+     *
+     * @return Response
+     */
     #[Route('/formations', name: 'formations')]
     public function index(): Response
     {
@@ -45,6 +67,14 @@ class FormationsController extends AbstractController
         ]);
     }
 
+    /**
+     * Affiche la liste des formations triées sur un champ.
+     *
+     * @param string $champ  Nom du champ sur lequel trier
+     * @param string $ordre  Ordre du tri : 'ASC' ou 'DESC'
+     * @param string $table  Table liée si le champ appartient à une relation (ex: 'playlist')
+     * @return Response
+     */
     #[Route('/formations/tri/{champ}/{ordre}/{table}', name: 'formations.sort')]
     public function sort(string $champ, string $ordre, string $table = ""): Response
     {
@@ -56,6 +86,14 @@ class FormationsController extends AbstractController
         ]);
     }
 
+    /**
+     * Affiche les formations dont un champ contient la valeur recherchée.
+     *
+     * @param string  $champ   Nom du champ dans lequel chercher
+     * @param Request $request Requête HTTP contenant le paramètre 'recherche'
+     * @param string  $table   Table liée si le champ appartient à une relation
+     * @return Response
+     */
     #[Route('/formations/recherche/{champ}/{table}', name: 'formations.findallcontain')]
     public function findAllContain(string $champ, Request $request, string $table = ""): Response
     {
@@ -70,6 +108,12 @@ class FormationsController extends AbstractController
         ]);
     }
 
+    /**
+     * Affiche le détail d'une formation.
+     *
+     * @param int $id Identifiant de la formation
+     * @return Response
+     */
     #[Route('/formations/formation/{id}', name: 'formations.showone')]
     public function showOne(int $id): Response
     {
@@ -80,7 +124,12 @@ class FormationsController extends AbstractController
     }
 
     /**
-     * Affiche le formulaire d'ajout.
+     * Affiche le formulaire d'ajout d'une formation et traite sa soumission.
+     * Placée avant formations.retirer pour éviter que "new" soit capturé comme un {id}.
+     *
+     * @param Request             $request Requête HTTP
+     * @param FormationRepository $repo    Repository des formations
+     * @return Response
      */
     #[Route('/formations/new', name: 'formations.ajouter')]
     public function new(Request $request, FormationRepository $repo): Response
@@ -102,7 +151,13 @@ class FormationsController extends AbstractController
     }
 
     /**
-     * Affiche le formulaire de modification prérempli.
+     * Affiche le formulaire de modification d'une formation prérempli et traite sa soumission.
+     * Symfony injecte automatiquement la Formation via son id (ParamConverter).
+     *
+     * @param Formation           $formation Formation à modifier
+     * @param Request             $request   Requête HTTP
+     * @param FormationRepository $repo      Repository des formations
+     * @return Response
      */
     #[Route('/formations/{id}/edit', name: 'formations.modifier')]
     public function modifier(Formation $formation, Request $request, FormationRepository $repo): Response
@@ -123,7 +178,14 @@ class FormationsController extends AbstractController
     }
 
     /**
-     * Suppression avec vérification du token CSRF.
+     * Supprime une formation après vérification du token CSRF.
+     * La suppression retire aussi automatiquement les lignes de la table de jointure
+     * formation_categorie (relation ManyToMany gérée par Doctrine).
+     *
+     * @param Formation           $formation Formation à supprimer
+     * @param Request             $request   Requête HTTP
+     * @param FormationRepository $repo      Repository des formations
+     * @return Response
      */
     #[Route('/formations/{id}', name: 'formations.retirer', methods: ['POST'])]
     public function retirer(Formation $formation, Request $request, FormationRepository $repo): Response

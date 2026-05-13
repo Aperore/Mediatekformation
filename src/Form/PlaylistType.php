@@ -9,8 +9,19 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints as Assert;
 
+/**
+ * Formulaire de création et modification d'une playlist.
+ * Seul le champ name est obligatoire.
+ */
 class PlaylistType extends AbstractType
 {
+    /**
+     * Construit le formulaire avec les champs name et description.
+     *
+     * @param FormBuilderInterface $builder Constructeur de formulaire Symfony
+     * @param array                $options Options du formulaire
+     * @return void
+     */
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
@@ -39,6 +50,13 @@ class PlaylistType extends AbstractType
             ]);
     }
 
+    /**
+     * Configure les options par défaut du formulaire.
+     * Lie le formulaire à l'entité Playlist.
+     *
+     * @param OptionsResolver $resolver Résolveur d'options Symfony
+     * @return void
+     */
     public function configureOptions(OptionsResolver $resolver): void
     {
         // Lie ce formulaire à l'entité Playlist.

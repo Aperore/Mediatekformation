@@ -15,9 +15,20 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 
-
+/**
+ * Formulaire de création et modification d'une formation.
+ * Définit les champs, leurs types et leurs contraintes de validation.
+ */
 class FormationType extends AbstractType
 {
+    /**
+     * Construit le formulaire avec les champs title, description, videoId,
+     * publishedAt, playlist et categories.
+     *
+     * @param FormBuilderInterface $builder Constructeur de formulaire Symfony
+     * @param array                $options Options du formulaire
+     * @return void
+     */
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
@@ -76,6 +87,13 @@ class FormationType extends AbstractType
             ]);
     }
 
+    /**
+     * Configure les options par défaut du formulaire.
+     * Lie le formulaire à l'entité Formation.
+     *
+     * @param OptionsResolver $resolver Résolveur d'options Symfony
+     * @return void
+     */
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([

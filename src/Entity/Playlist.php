@@ -33,16 +33,32 @@ class Playlist
         $this->formations = new ArrayCollection();
     }
 
+    /**
+     * Retourne l'identifiant de la playlist.
+     *
+     * @return int|null
+     */
     public function getId(): ?int
     {
         return $this->id;
     }
 
+    /**
+     * Retourne le nom de la playlist.
+     *
+     * @return string|null
+     */
     public function getName(): ?string
     {
         return $this->name;
     }
 
+    /**
+     * Définit le nom de la playlist.
+     *
+     * @param string|null $name Nom de la playlist
+     * @return static
+     */
     public function setName(?string $name): static
     {
         $this->name = $name;
@@ -50,11 +66,22 @@ class Playlist
         return $this;
     }
 
+    /**
+     * Retourne la description de la playlist.
+     *
+     * @return string|null
+     */
     public function getDescription(): ?string
     {
         return $this->description;
     }
 
+    /**
+     * Définit la description de la playlist.
+     *
+     * @param string|null $description Description de la playlist
+     * @return static
+     */
     public function setDescription(?string $description): static
     {
         $this->description = $description;
@@ -63,6 +90,8 @@ class Playlist
     }
 
     /**
+     * Retourne la liste des playlists
+     * 
      * @return Collection<int, Formation>
      */
     public function getFormations(): Collection
@@ -98,6 +127,8 @@ class Playlist
     }
     
     /**
+     * Retourne la liste des categories de playlist
+     * 
      * @return Collection<int, string>
      */
     public function getCategoriesPlaylist() : Collection

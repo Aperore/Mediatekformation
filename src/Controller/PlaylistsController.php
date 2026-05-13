@@ -12,17 +12,56 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
- * Description of PlaylistsController
+ * Contrôleur de gestion des playlists (front et back office).
+ * Gère l'affichage, l'ajout, la modification et la suppression des playlists.
  *
  * @author emds
  */
 class PlaylistsController extends AbstractController
 {
-    private const PLAYLISTS   = "pages/playlists.html.twig";
-    private const PLAYLIST    = "pages/playlist.html.twig";
+    /**
+     * Chemin du template de la liste des playlists.
+     */
+    private const PLAYLISTS = "pages/playlists.html.twig";
+
+    /**
+     * Chemin du template du détail d'une playlist.
+     */
+    private const PLAYLIST = "pages/playlist.html.twig";
+
+    /**
+     * Chemin du template du formulaire d'ajout/modification.
+     */
     private const PLAYLISTFORM = "pages/playlistmodifier.html.twig";
 
+    /**
+     * Repository des playlists.
+     *
+     * @var PlaylistRepository
+     */
+    private PlaylistRepository $playlistRepository;
 
+    /**
+     * Repository des catégories.
+     *
+     * @var CategorieRepository
+     */
+    private CategorieRepository $categorieRepository;
+
+    /**
+     * Repository des formations.
+     *
+     * @var FormationRepository
+     */
+    private FormationRepository $formationRepository;
+
+    /**
+     * Injection des repositories via le constructeur.
+     *
+     * @param PlaylistRepository  $playlistRepository  Repository des playlists
+     * @param CategorieRepository $categorieRepository Repository des catégories
+     * @param FormationRepository $formationRepository Repository des formations
+     */
     public function __construct(
         PlaylistRepository  $playlistRepository,
         CategorieRepository $categorieRepository,
@@ -34,7 +73,8 @@ class PlaylistsController extends AbstractController
     }
 
     /**
-     * @Route("/playlists", name="playlists")
+     * Affiche la liste complète des playlists triées par nom.
+     *
      * @return Response
      */
     #[Route('/playlists', name: 'playlists')]
@@ -48,6 +88,13 @@ class PlaylistsController extends AbstractController
         ]);
     }
 
+    /**
+     * Affiche la liste des playlists triées sur un champ.
+     *
+     * @param string $champ Nom du champ : 'name' ou 'NombreFormations'
+     * @param string $ordre Ordre du tri : 'ASC' ou 'DESC'
+     * @return Response
+     */
     #[Route('/playlists/tri/{champ}/{ordre}', name: 'playlists.sort')]
     public function sort($champ, $ordre): Response
     {
@@ -63,6 +110,14 @@ class PlaylistsController extends AbstractController
         ]);
     }
 
+    /**
+     * Affiche les playlists dont un champ contient la valeur recherchée.
+     *
+     * @param string  $champ   Nom du champ dans lequel chercher
+     * @param Request $request Requête HTTP contenant le paramètre 'recherche'
+     * @param string  $table   Table liée si le champ appartient à une relation
+     * @return Response
+     */
     #[Route('/playlists/recherche/{champ}/{table}', name: 'playlists.findallcontain')]
     public function findAllContain($champ, Request $request, $table = ""): Response
     {
@@ -77,6 +132,12 @@ class PlaylistsController extends AbstractController
         ]);
     }
 
+    /**
+     * Affiche le détail d'une playlist avec ses formations et catégories.
+     *
+     * @param int $id Identifiant de la playlist
+     * @return Response
+     */
     #[Route('/playlists/playlist/{id}', name: 'playlists.showone')]
     public function showOne($id): Response
     {
@@ -90,6 +151,13 @@ class PlaylistsController extends AbstractController
         ]);
     }
 
+    /**
+     * Affiche le formulaire d'ajout d'une playlist et traite sa soumission.
+     * Placée avant playlists.retirer pour éviter que "new" soit capturé comme un {id}.
+     *
+     * @param Request $request Requête HTTP
+     * @return Response
+     */
     #[Route('/playlists/new', name: 'playlists.ajouter')]
     public function new(Request $request): Response
     {
@@ -109,6 +177,14 @@ class PlaylistsController extends AbstractController
         ]);
     }
 
+    /**
+     * Affiche le formulaire de modification d'une playlist prérempli et traite sa soumission.
+     * Passe également les formations de la playlist au template (lecture seule).
+     *
+     * @param Playlist $playlist Playlist à modifier (injectée via ParamConverter)
+     * @param Request  $request  Requête HTTP
+     * @return Response
+     */
     #[Route('/playlists/{id}/edit', name: 'playlists.modifier')]
     public function modifier(Playlist $playlist, Request $request): Response
     {
@@ -130,6 +206,14 @@ class PlaylistsController extends AbstractController
         ]);
     }
 
+    /**
+     * Supprime une playlist après vérification du token CSRF.
+     * La suppression est bloquée si des formations sont rattachées à la playlist.
+     *
+     * @param Playlist $playlist Playlist à supprimer (injectée via ParamConverter)
+     * @param Request  $request  Requête HTTP
+     * @return Response
+     */
     #[Route('/playlists/{id}', name: 'playlists.retirer', methods: ['POST'])]
     public function retirer(Playlist $playlist, Request $request): Response
     {
